@@ -1267,7 +1267,7 @@ function processPaystackPayment(orderData) {
     const amount = orderData.total * 100; // Convert to kobo/pesewas
     
     let handler = PaystackPop.setup({
-        key: 'pk_test_d4b0850a4507d950f2edc338e73ccf49d2be813b', // Replace with your Paystack public key
+        key: process.env.PAYSTACK_PUBLIC_KEY || 'EXAMPLE_KEY', // Use environment variable
         email: email,
         amount: amount,
         currency: 'GHS',
@@ -1291,13 +1291,9 @@ function processPaystackPayment(orderData) {
             ]
         },
         callback: function(response) {
-            // On successful payment
             orderData.paymentReference = response.reference;
             orderData.status = 'paid';
             completeOrder(orderData);
-            
-            // In a real app, you would verify the payment on your backend
-            // verifyPayment(response.reference);
         },
         onClose: function() {
             showToast('Payment window closed', 'error');
