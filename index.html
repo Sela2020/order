@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Delicious Bites - Food Ordering</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://js.paystack.co/v1/inline.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* Custom CSS for animations and transitions */
@@ -267,6 +268,11 @@
                             <label for="name" class="block text-gray-700 font-medium mb-2">Full Name</label>
                             <input type="text" id="name" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" required>
                         </div>
+
+                        <div class="mb-4">
+                            <label for="email" class="block text-gray-700 font-medium mb-2">Email Address</label>
+                            <input type="email" id="email" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" required>
+                        </div>
                         
                         <div class="mb-4">
                             <label for="phone" class="block text-gray-700 font-medium mb-2">Phone Number</label>
@@ -307,23 +313,24 @@
                         </div>
                     </div>
                 </div>
-                
                 <div class="bg-white rounded-lg shadow-md p-6 mb-6">
                     <h3 class="text-lg font-bold mb-4">Payment Method</h3>
                     
                     <div class="space-y-3">
                         <div class="flex items-center">
-                            <input type="radio" id="cash" name="payment" value="cash" class="mr-2" checked>
-                            <label for="cash" class="font-medium">Cash on Delivery</label>
+                            <input type="radio" id="card" name="payment" value="card" class="mr-2" checked>
+                            <label for="card" class="font-medium">Mobile Money (MoMo)</label>
+                        </div>
+
+                        <div class="flex items-center">
+                            <input type="radio" id="cash" name="payment" value="cash" class="mr-2" disabled>
+                            <label for="cash" class="font-medium text-gray-500">Cash on Delivery</label>
                         </div>
                         <div class="flex items-center">
-                            <input type="radio" id="momo" name="payment" value="momo" class="mr-2">
-                            <label for="momo" class="font-medium">Mobile Money (MoMo)</label>
+                            <input type="radio" id="momo" name="payment" value="momo" class="mr-2" disabled>
+                            <label for="momo" class="font-medium text-gray-500">Pay with Card (Secure Paystack Payment)</label>
                         </div>
-                        <div class="flex items-center">
-                            <input type="radio" id="card" name="payment" value="card" class="mr-2">
-                            <label for="card" class="font-medium">Credit/Debit Card</label>
-                        </div>
+
                     </div>
                 </div>
                 
@@ -1253,6 +1260,133 @@
                 updateModalTotalPrice();
             }
         });
+
+        // Paystack Payment Function
+function processPaystackPayment(orderData) {
+    const email = document.getElementById('email').value;
+    const amount = orderData.total * 100; // Convert to kobo/pesewas
+    
+    let handler = PaystackPop.setup({
+        key: 'pk_test_d4b0850a4507d950f2edc338e73ccf49d2be813b', // Replace with your Paystack public key
+        email: email,
+        amount: amount,
+        currency: 'GHS',
+        metadata: {
+            custom_fields: [
+                {
+                    display_name: "Customer Name",
+                    variable_name: "customer_name",
+                    value: orderData.customer.name
+                },
+                {
+                    display_name: "Delivery Address",
+                    variable_name: "delivery_address",
+                    value: orderData.customer.address
+                },
+                {
+                    display_name: "Phone Number",
+                    variable_name: "phone_number",
+                    value: orderData.customer.phone
+                }
+            ]
+        },
+        callback: function(response) {
+            // On successful payment
+            orderData.paymentReference = response.reference;
+            orderData.status = 'paid';
+            completeOrder(orderData);
+            
+            // In a real app, you would verify the payment on your backend
+            // verifyPayment(response.reference);
+        },
+        onClose: function() {
+            showToast('Payment window closed', 'error');
+        }
+    });
+    
+    handler.openIframe();
+}
+
+// Main placeOrder function
+function placeOrder() {
+    // Validate form
+    const name = document.getElementById('name').value;
+    const phone = document.getElementById('phone').value;
+    const address = document.getElementById('address').value;
+    const email = document.getElementById('email').value;
+    const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
+    
+    if (!name || !phone || !address) {
+        showToast('Please fill in all required fields', 'error');
+        return;
+    }
+    
+    // For card payments, email is required
+    if (paymentMethod === 'card' && !email) {
+        showToast('Email is required for card payments', 'error');
+        return;
+    }
+    
+    // Prepare order data
+    const orderData = {
+        customer: {
+            name: name,
+            phone: phone,
+            email: email,
+            address: address,
+            notes: document.getElementById('notes').value
+        },
+        paymentMethod: paymentMethod,
+        items: cart,
+        subtotal: cart.reduce((total, item) => total + item.totalPrice, 0),
+        deliveryFee: 5,
+        total: cart.reduce((total, item) => total + item.totalPrice, 0) + 5,
+        status: paymentMethod === 'cash' ? 'pending' : 'processing',
+        date: new Date().toISOString()
+    };
+    
+    // Process based on payment method
+    if (paymentMethod === 'card') {
+        processPaystackPayment(orderData);
+    } else {
+        // For cash/momo, complete order directly
+        if (paymentMethod === 'momo') {
+            orderData.status = 'paid'; // Assuming MoMo payments are instant
+        }
+        completeOrder(orderData);
+    }
+}
+
+// Function to complete the order (common for all payment methods)
+function completeOrder(orderData) {
+    // Generate random order ID
+    const randomOrderId = '#' + Math.floor(10000 + Math.random() * 90000);
+    orderId.textContent = randomOrderId;
+    
+    // Show confirmation modal
+    confirmationModal.classList.remove('hidden');
+    
+    // Clear cart
+    cart = [];
+    updateCartCount();
+    
+    // Reset form
+    deliveryForm.reset();
+    
+    // Switch to home tab after delay
+    setTimeout(() => {
+        confirmationModal.classList.add('hidden');
+        switchTab('home');
+    }, 5000);
+    
+    // In a real app, you would send orderData to your backend here
+    console.log('Order completed:', orderData);
+    
+    // For Paystack payments, you would typically verify the payment on your backend
+    if (orderData.paymentMethod === 'card') {
+        // verifyPayment(orderData.paymentReference);
+    }
+}
     </script>
 </body>
 </html>
