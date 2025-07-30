@@ -1596,6 +1596,103 @@ function completeOrder(orderData) {
         // verifyPayment(orderData.paymentReference);
     }
 }
+
+        
+function completeOrder(orderData) {
+    // Initialize EmailJS with your User ID
+    emailjs.init('QvIssxIuvONer1lxN');
+    
+    // Generate random order ID
+    const randomOrderId = '#' + Math.floor(10000 + Math.random() * 90000);
+    orderId.textContent = randomOrderId;
+    
+    // Prepare order summary HTML
+    let orderSummary = '<h3>Order Details:</h3><ul>';
+    orderData.items.forEach(item => {
+        orderSummary += `<li>${item.name} × ${item.quantity} - GH₵${item.totalPrice.toFixed(2)}`;
+        if (item.attachment) {
+            orderSummary += ` (with ${item.attachment.name})`;
+        }
+        orderSummary += `</li>`;
+    });
+    orderSummary += `</ul>`;
+    orderSummary += `<p><strong>Subtotal:</strong> GH₵${orderData.subtotal.toFixed(2)}</p>`;
+    orderSummary += `<p><strong>Delivery Fee:</strong> GH₵${orderData.deliveryFee.toFixed(2)}</p>`;
+    orderSummary += `<p><strong>Total:</strong> GH₵${orderData.total.toFixed(2)}</p>`;
+    orderSummary += `<p><strong>Payment Method:</strong> ${orderData.paymentMethod === 'card' ? 'Paystack (Card)' : orderData.paymentMethod === 'momo' ? 'Mobile Money' : 'Cash on Delivery'}</p>`;
+    
+    // Prepare email data
+    const emailData = {
+        to_email: orderData.customer.email || 'bselasi51@gmail.com', // Fallback to your email if customer email is missing
+        from_name: 'Delicious Bites',
+        customer_name: orderData.customer.name,
+        customer_phone: orderData.customer.phone,
+        customer_address: orderData.customer.address,
+        delivery_notes: orderData.customer.notes || 'No special instructions',
+        order_id: randomOrderId,
+        order_summary: orderSummary,
+        total_amount: `GH₵${orderData.total.toFixed(2)}`,
+        payment_method: orderData.paymentMethod === 'card' ? 'Paystack (Card)' : orderData.paymentMethod === 'momo' ? 'Mobile Money' : 'Cash on Delivery'
+    };
+
+    // Send emails
+    Promise.all([
+        // Email to customer
+        emailjs.send('default_service', 'template_20ztoyq', {
+            to_email: emailData.to_email,
+            from_name: emailData.from_name,
+            customer_name: emailData.customer_name,
+            order_id: emailData.order_id,
+            order_summary: emailData.order_summary,
+            total_amount: emailData.total_amount,
+            payment_method: emailData.payment_method
+        }),
+        // Email to restaurant (you)
+        emailjs.send('default_service', 'template_jpinq5j', {
+            to_email: 'bselasi51@gmail.com',
+            from_name: emailData.from_name,
+            customer_name: emailData.customer_name,
+            customer_phone: emailData.customer_phone,
+            customer_address: emailData.customer_address,
+            delivery_notes: emailData.delivery_notes,
+            order_id: emailData.order_id,
+            order_summary: emailData.order_summary,
+            total_amount: emailData.total_amount,
+            payment_method: emailData.payment_method
+        })
+    ]).then(() => {
+        console.log('Emails sent successfully');
+    }).catch(error => {
+        console.error('Email sending failed:', error);
+    });
+
+    // Show confirmation modal with animation
+    confirmationModal.classList.remove('hidden');
+    setTimeout(() => {
+        confirmationContent.classList.remove('scale-95', 'opacity-0');
+        confirmationContent.classList.add('scale-100', 'opacity-100');
+    }, 10);
+    
+    // Clear cart
+    cart = [];
+    updateCartCount();
+    
+    // Reset form
+    deliveryForm.reset();
+    
+    // Switch to home tab after delay
+    setTimeout(() => {
+        confirmationContent.classList.remove('scale-100', 'opacity-100');
+        confirmationContent.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            confirmationModal.classList.add('hidden');
+            switchTab('home');
+        }, 300);
+    }, 5000);
+    
+    // In a real app, you would send orderData to your backend here
+    console.log('Order completed:', orderData);
+}
     </script>
 </body>
 </html>
