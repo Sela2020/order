@@ -1405,47 +1405,7 @@
             }
         }
 
-        function processPaystackPayment(orderData) {
-            const email = document.getElementById('email').value;
-            const amount = orderData.total * 100; // Convert to kobo/pesewas
-            
-            let handler = PaystackPop.setup({
-                key: 'pk_test_d4b0850a4507d950f2edc338e73ccf49d2be813b', // Replace with your Paystack public key
-                email: email,
-                amount: amount,
-                currency: 'GHS',
-                metadata: {
-                    custom_fields: [
-                        {
-                            display_name: "Customer Name",
-                            variable_name: "customer_name",
-                            value: orderData.customer.name
-                        },
-                        {
-                            display_name: "Delivery Address",
-                            variable_name: "delivery_address",
-                            value: orderData.customer.address
-                        },
-                        {
-                            display_name: "Phone Number",
-                            variable_name: "phone_number",
-                            value: orderData.customer.phone
-                        }
-                    ]
-                },
-                callback: function(response) {
-                    // On successful payment
-                    orderData.paymentReference = response.reference;
-                    orderData.status = 'paid';
-                    completeOrder(orderData);
-                },
-                onClose: function() {
-                    showToast('Payment window closed', 'error');
-                }
-            });
-            
-            handler.openIframe();
-        }
+       
 
         function completeOrder(orderData) {
             // Generate random order ID
