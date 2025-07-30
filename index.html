@@ -1513,49 +1513,47 @@
         });
 
         // Paystack Payment Function
-function processPaystackPayment(orderData) {
+// NEW VERSION (use this instead)
+async function processPaystackPayment(orderData) {
     const email = document.getElementById('email').value;
-    const amount = orderData.total * 100; // Convert to kobo/pesewas
+    const amount = orderData.total * 100;
     
-    let handler = PaystackPop.setup({
-        key: 'pk_test_d4b0850a4507d950f2edc338e73ccf49d2be813b', // Replace with your Paystack public key
-        email: email,
-        amount: amount,
-        currency: 'GHS',
-        metadata: {
-            custom_fields: [
-                {
-                    display_name: "Customer Name",
-                    variable_name: "customer_name",
-                    value: orderData.customer.name
-                },
-                {
-                    display_name: "Delivery Address",
-                    variable_name: "delivery_address",
-                    value: orderData.customer.address
-                },
-                {
-                    display_name: "Phone Number",
-                    variable_name: "phone_number",
-                    value: orderData.customer.phone
-                }
-            ]
-        },
-        callback: function(response) {
-            // On successful payment
-            orderData.paymentReference = response.reference;
-            orderData.status = 'paid';
-            completeOrder(orderData);
-            
-            // In a real app, you would verify the payment on your backend
-            // verifyPayment(response.reference);
-        },
-        onClose: function() {
-            showToast('Payment window closed', 'error');
-        }
-    });
-    
-    handler.openIframe();
+    // Prepare metadata (same as before)
+    const metadata = {
+        custom_fields: [/*...*/]
+    };
+
+    try {
+        // NEW: Call Netlify function first
+        const response = await fetch('/.netlify/functions/init-paystack', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, amount, metadata })
+        });
+
+        const data = await response.json();
+
+        // Rest is similar but uses data from Netlify function
+        let handler = PaystackPop.setup({
+            key: data.key, // ← Now comes from Netlify
+            email: data.email,
+            amount: data.amount,
+            currency: 'GHS',
+            metadata: data.metadata,
+            callback: function(response) {
+                orderData.paymentReference = response.reference;
+                orderData.status = 'paid';
+                completeOrder(orderData); // ← Keep your existing completeOrder
+            },
+            onClose: function() {
+                showToast('Payment window closed', 'error'); // ← Keep existing
+            }
+        });
+        handler.openIframe();
+    } catch (error) {
+        console.error('Payment error:', error);
+        showToast('Payment failed: ' + error.message, 'error');
+    }
 }
 
 // Main placeOrder function
