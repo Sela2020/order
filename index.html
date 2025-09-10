@@ -3,136 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Innovative Digital Business Card</title>
+    <title>Delicious Bites - Food Ordering</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://js.paystack.co/v1/inline.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Physics-based card flipping */
-        .card-container {
-            perspective: 1500px;
-            width: 100%;
-            max-width: 400px;
-            margin: 0 auto;
+        /* Custom CSS for animations and transitions */
+        .food-card {
+            transform: translateY(0);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         
-        .card {
-            position: relative;
-            width: 100%;
-            height: 600px;
-            transform-style: preserve-3d;
-            transition: transform 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
-            border-radius: 20px;
-            cursor: pointer;
+        .food-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
         
-        .card.flipped {
-            transform: rotateY(180deg);
+        .cart-item-enter {
+            opacity: 0;
+            transform: translateX(-20px);
         }
         
-        .card-face {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            border-radius: 20px;
-            overflow: hidden;
+        .cart-item-enter-active {
+            opacity: 1;
+            transform: translateX(0);
+            transition: all 300ms ease-in;
         }
         
-        .card-back {
-            transform: rotateY(180deg);
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
-            color: white;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            text-align: center;
+        .cart-item-exit {
+            opacity: 1;
         }
         
-        /* Picture-in-Picture video */
-        .video-container {
-            position: relative;
-            width: 100%;
-            margin: 20px 0;
+        .cart-item-exit-active {
+            opacity: 0;
+            transform: translateX(20px);
+            transition: all 300ms ease-out;
         }
         
-        .main-video {
-            width: 100%;
-            border-radius: 12px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-        }
-        
-        .pip-video {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            width: 120px;
-            height: 80px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            border: 2px solid white;
-            z-index: 10;
-            cursor: move;
-        }
-        
-        /* Voice command UI */
-        .voice-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #6e45e2, #88d3ce);
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            cursor: pointer;
-            z-index: 1000;
-            transition: all 0.3s ease;
-        }
-        
-        .voice-btn.listening {
-            animation: pulse 1.5s infinite;
-            background: linear-gradient(135deg, #ff512f, #dd2476);
-        }
-        
-        .voice-commands {
-            position: fixed;
-            bottom: 90px;
-            right: 20px;
-            background: white;
-            border-radius: 12px;
-            padding: 15px;
-            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
-            width: 250px;
-            z-index: 1000;
+        .tab-content {
             display: none;
-        }
-        
-        .command-item {
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
-            font-size: 14px;
-        }
-        
-        .command-item:last-child {
-            border-bottom: none;
-        }
-        
-        /* Animations */
-        @keyframes pulse {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 81, 47, 0.7); }
-            70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(255, 81, 47, 0); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 81, 47, 0); }
-        }
-        
-        .fade-in {
             animation: fadeIn 0.5s ease-in;
+        }
+        
+        .tab-content.active {
+            display: block;
         }
         
         @keyframes fadeIn {
@@ -140,310 +54,1646 @@
             to { opacity: 1; }
         }
         
-        /* General styles */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+        /* Slide-in animation for cart */
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
         }
         
-        h1, h2, h3 {
-            margin-bottom: 15px;
+        /* Slide-out animation for cart */
+        @keyframes slideOut {
+            from { transform: translateX(0); }
+            to { transform: translateX(100%); }
         }
         
-        .skill-bar {
-            width: 100%;
-            background: #e0e0e0;
-            border-radius: 10px;
-            margin: 10px 0;
-            overflow: hidden;
+        .cart-open {
+            animation: slideIn 0.3s forwards;
         }
         
-        .skill-level {
-            height: 8px;
-            border-radius: 10px;
-            background: linear-gradient(90deg, #6e45e2, #88d3ce);
+        .cart-closed {
+            animation: slideOut 0.3s forwards;
         }
         
-        .social-icons {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 20px;
+        /* Pulse animation for order now button */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
         
-        .social-icons a {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #1e3c72;
-            text-decoration: none;
-            transition: all 0.3s ease;
+        .pulse-animation {
+            animation: pulse 2s infinite;
         }
         
-        .social-icons a:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        /* Bounce animation for cart icon */
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        .bounce-animation {
+            animation: bounce 0.5s;
+        }
+        
+        /* Floating animation for hero section */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .float-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        /* Mobile menu animations */
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .mobile-menu-open {
+            animation: slideDown 0.3s ease-out forwards;
+            display: block !important;
+        }
+        
+        /* Loading animation */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-spinner {
+            animation: spin 1s linear infinite;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            .hero {
+                padding: 2rem 1rem;
+                text-align: center;
+            }
+            
+            .hero h2 {
+                font-size: 1.8rem;
+            }
+            
+            .cart-sidebar {
+                width: 100%;
+            }
+            
+            .category-scroll {
+                padding-bottom: 0.5rem;
+                margin-bottom: 0.5rem;
+                overflow-x: auto;
+                white-space: nowrap;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .category-scroll::-webkit-scrollbar {
+                display: none;
+            }
+            
+            .food-card img {
+                height: 30vw;
+            }
         }
     </style>
 </head>
-<body>
-    <div class="card-container">
-        <div class="card">
-            <!-- Front of the card -->
-            <div class="card-face bg-white p-8">
-                <div class="text-center">
-                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
-                         alt="Profile" class="w-32 h-32 rounded-full mx-auto object-cover border-4 border-blue-100">
-                    <h1 class="text-3xl font-bold mt-4 text-gray-800">Alex Johnson</h1>
-                    <p class="text-blue-600 font-semibold">Senior UX Designer</p>
-                    <p class="text-gray-600 mt-2">Creating beautiful user experiences since 2015</p>
-                    
-                    <div class="video-container mt-6">
-                        <video class="main-video" controls>
-                            <source src="https://assets.codepen.io/3364143/sample.mp4" type="video/mp4">
-                        </video>
-                        <video class="pip-video" muted loop>
-                            <source src="https://assets.codepen.io/3364143/sample.mp4" type="video/mp4">
-                        </video>
-                    </div>
-                    
-                    <div class="mt-6">
-                        <button id="flipBtn" class="bg-blue-600 text-white px-6 py-2 rounded-full font-medium hover:bg-blue-700 transition-all">
-                            Flip to Details <i class="ml-2 fas fa-sync-alt"></i>
-                        </button>
-                    </div>
-                </div>
+<body class="bg-gray-50 font-sans">
+    <!-- Header/Navigation -->
+    <header class="bg-orange-600 text-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center">
+                <i class="fas fa-utensils text-2xl mr-2"></i>
+                <h1 class="text-xl md:text-2xl font-bold">Delicious Bites</h1>
             </div>
-            
-            <!-- Back of the card -->
-            <div class="card-back">
-                <h2 class="text-2xl font-bold">About Me</h2>
-                <p class="mt-4">I'm a passionate UX designer with over 8 years of experience creating intuitive and beautiful digital experiences for startups and Fortune 500 companies.</p>
-                
-                <div class="w-full mt-6">
-                    <h3 class="text-lg font-semibold mb-2">Skills</h3>
-                    <div class="skill-bar">
-                        <div class="skill-level" style="width: 90%"></div>
-                    </div>
-                    <p class="text-sm">UI/UX Design</p>
-                    
-                    <div class="skill-bar">
-                        <div class="skill-level" style="width: 85%"></div>
-                    </div>
-                    <p class="text-sm">User Research</p>
-                    
-                    <div class="skill-bar">
-                        <div class="skill-level" style="width: 75%"></div>
-                    </div>
-                    <p class="text-sm">Prototyping</p>
-                </div>
-                
-                <div class="social-icons">
-                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                    <a href="#"><i class="fab fa-twitter"></i></a>
-                    <a href="#"><i class="fab fa-dribbble"></i></a>
-                    <a href="#"><i class="fab fa-behance"></i></a>
-                </div>
-                
-                <button id="flipBackBtn" class="mt-6 bg-white text-blue-600 px-6 py-2 rounded-full font-medium hover:bg-gray-100 transition-all">
-                    Back to Front <i class="ml-2 fas fa-undo"></i>
+            <div class="flex items-center space-x-4">
+                <button id="cartBtn" class="relative">
+                    <i class="fas fa-shopping-cart text-xl"></i>
+                    <span id="cartCount" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span>
+                </button>
+                <button id="menuBtn" class="md:hidden">
+                    <i class="fas fa-bars text-xl"></i>
                 </button>
             </div>
         </div>
-    </div>
-    
-    <!-- Voice command button -->
-    <div class="voice-btn" id="voiceBtn">
-        <i class="fas fa-microphone text-xl"></i>
-    </div>
-    
-    <!-- Voice commands panel -->
-    <div class="voice-commands" id="voiceCommands">
-        <h3 class="font-semibold mb-2 text-gray-800">Voice Commands</h3>
-        <div class="command-item">Say "flip card" to flip the card</div>
-        <div class="command-item">Say "play video" to play the main video</div>
-        <div class="command-item">Say "pause video" to pause the video</div>
-        <div class="command-item">Say "show skills" to highlight skills</div>
-        <div class="command-item">Say "contact me" to show social links</div>
-    </div>
-    
+        <nav id="mobileMenu" class="hidden md:block bg-orange-700">
+            <div class="container mx-auto px-4 py-2 flex flex-col md:flex-row md:space-x-6">
+                <button class="tab-btn active py-2 px-4 text-white font-medium" data-tab="home">Home</button>
+                <button class="tab-btn py-2 px-4 text-white font-medium" data-tab="menu">Menu</button>
+                <button class="tab-btn py-2 px-4 text-white font-medium" data-tab="about">About Us</button>
+                <button class="tab-btn py-2 px-4 text-white font-medium" data-tab="contact">Contact</button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-6">
+        <!-- Home Tab -->
+        <div id="home" class="tab-content active">
+            <section class="hero bg-gradient-to-r from-orange-500 to-yellow-500 rounded-xl p-8 text-white mb-8 float-animation">
+                <div class="max-w-2xl">
+                    <h2 class="text-3xl md:text-4xl font-bold mb-4">Authentic Ghanaian Cuisine Delivered to Your Doorstep</h2>
+                    <p class="text-lg mb-6">Enjoy our delicious meals prepared with fresh ingredients and traditional recipes.</p>
+                    <button class="bg-white text-orange-600 font-bold py-3 px-6 rounded-full hover:bg-gray-100 transition duration-300 order-now-btn pulse-animation" data-tab="menu">
+                        Order Now <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </section>
+
+            <section class="mb-12">
+                <h2 class="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">Our Popular Categories</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="food-card bg-white rounded-lg overflow-hidden shadow-md cursor-pointer transition duration-300" data-category="rice">
+                        <img src="https://images.unsplash.com/photo-1601050690597-df0568f70950?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="Rice" class="w-full h-40 object-cover">
+                        <div class="p-4">
+                            <h3 class="font-bold text-lg mb-2">Rice Dishes</h3>
+                            <p class="text-gray-600">From plain rice to jollof, choose your favorite</p>
+                        </div>
+                    </div>
+                    <div class="food-card bg-white rounded-lg overflow-hidden shadow-md cursor-pointer transition duration-300" data-category="banku">
+                        <img src="https://images.unsplash.com/photo-1563805042-7684c019e1cb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="Banku" class="w-full h-40 object-cover">
+                        <div class="p-4">
+                            <h3 class="font-bold text-lg mb-2">Banku & Tilapia</h3>
+                            <p class="text-gray-600">Traditional favorite with grilled tilapia</p>
+                        </div>
+                    </div>
+                    <div class="food-card bg-white rounded-lg overflow-hidden shadow-md cursor-pointer transition duration-300" data-category="fufu">
+                        <img src="https://images.unsplash.com/photo-1603360946369-dc9bb6258143?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="Fufu" class="w-full h-40 object-cover">
+                        <div class="p-4">
+                            <h3 class="font-bold text-lg mb-2">Fufu & Soup</h3>
+                            <p class="text-gray-600">Light soup, palm nut soup, and more</p>
+                        </div>
+                    </div>
+                    <div class="food-card bg-white rounded-lg overflow-hidden shadow-md cursor-pointer transition duration-300" data-category="jollof">
+                        <img src="https://images.unsplash.com/photo-1603360946369-dc9bb6258143?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80" alt="Jollof" class="w-full h-40 object-cover">
+                        <div class="p-4">
+                            <h3 class="font-bold text-lg mb-2">Jollof Rice</h3>
+                            <p class="text-gray-600">Our famous party jollof with chicken</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="mb-12">
+                <h2 class="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">Why Choose Us</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow-sm text-center hover:shadow-md transition duration-300">
+                        <div class="text-orange-500 text-4xl mb-4">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <h3 class="font-bold text-lg mb-2">Fast Delivery</h3>
+                        <p class="text-gray-600">Get your food delivered in under 45 minutes or it's free</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-sm text-center hover:shadow-md transition duration-300">
+                        <div class="text-orange-500 text-4xl mb-4">
+                            <i class="fas fa-leaf"></i>
+                        </div>
+                        <h3 class="font-bold text-lg mb-2">Fresh Ingredients</h3>
+                        <p class="text-gray-600">We use only the freshest ingredients for all our meals</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-sm text-center hover:shadow-md transition duration-300">
+                        <div class="text-orange-500 text-4xl mb-4">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </div>
+                        <h3 class="font-bold text-lg mb-2">Affordable Prices</h3>
+                        <p class="text-gray-600">Delicious meals that won't break the bank</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Menu Tab -->
+        <div id="menu" class="tab-content">
+            <section class="mb-8">
+                <h2 class="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">Our Menu</h2>
+                
+                <div class="category-scroll">
+                    <div class="flex space-x-2 pb-2">
+                        <button class="category-btn px-4 py-2 rounded-full bg-orange-600 text-white font-medium whitespace-nowrap active" data-category="all">All Items</button>
+                        <button class="category-btn px-4 py-2 rounded-full bg-gray-200 text-gray-800 font-medium whitespace-nowrap" data-category="rice">Rice Dishes</button>
+                        <button class="category-btn px-4 py-2 rounded-full bg-gray-200 text-gray-800 font-medium whitespace-nowrap" data-category="banku">Banku & Tilapia</button>
+                        <button class="category-btn px-4 py-2 rounded-full bg-gray-200 text-gray-800 font-medium whitespace-nowrap" data-category="fufu">Fufu & Soup</button>
+                        <button class="category-btn px-4 py-2 rounded-full bg-gray-200 text-gray-800 font-medium whitespace-nowrap" data-category="jollof">Jollof Rice</button>
+                        <button class="category-btn px-4 py-2 rounded-full bg-gray-200 text-gray-800 font-medium whitespace-nowrap" data-category="sides">Sides & Drinks</button>
+                    </div>
+                </div>
+                
+                <div id="foodItems" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Food items will be dynamically loaded here -->
+                </div>
+            </section>
+        </div>
+
+        <!-- Food Item Modal -->
+        <div id="foodModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 hidden">
+            <div class="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-95 opacity-0" id="modalContent">
+                <div class="p-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 id="modalFoodName" class="text-xl font-bold text-gray-800"></h3>
+                        <button id="closeModal" class="text-gray-500 hover:text-gray-700">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <img id="modalFoodImage" src="" alt="" class="w-full h-48 object-cover rounded-lg mb-4">
+                    
+                    <p id="modalFoodDesc" class="text-gray-600 mb-4"></p>
+                    
+                    <div class="mb-6">
+                        <h4 class="font-medium text-gray-800 mb-2">Base Price: <span id="modalBasePrice" class="font-bold text-orange-600"></span></h4>
+                        
+                        <div id="attachmentsContainer" class="mb-4">
+                            <h4 class="font-medium text-gray-800 mb-2">Add Attachments:</h4>
+                            <!-- Attachments will be added here dynamically -->
+                        </div>
+                        
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="font-medium text-gray-800">Quantity:</h4>
+                            <div class="flex items-center border rounded-lg overflow-hidden">
+                                <button class="quantity-btn px-3 py-1 bg-gray-200 hover:bg-gray-300" data-action="decrease">-</button>
+                                <span id="quantity" class="px-4 py-1">1</span>
+                                <button class="quantity-btn px-3 py-1 bg-gray-200 hover:bg-gray-300" data-action="increase">+</button>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gray-100 p-3 rounded-lg">
+                            <div class="flex justify-between font-bold text-lg">
+                                <span>Total:</span>
+                                <span id="modalTotalPrice" class="text-orange-600"></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button id="addToCartBtn" class="w-full bg-orange-600 text-white py-3 rounded-lg font-bold hover:bg-orange-700 transition duration-300">
+                        Add to Cart <i class="fas fa-shopping-cart ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cart Sidebar -->
+        <div id="cartSidebar" class="fixed inset-y-0 right-0 w-full sm:w-96 bg-white shadow-lg transform translate-x-full transition-transform duration-300 ease-in-out z-50 overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-gray-800">Your Order</h2>
+                    <button id="closeCart" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div id="cartItems" class="mb-6">
+                    <!-- Cart items will be added here dynamically -->
+                    <div class="text-center py-8 text-gray-500" id="emptyCartMessage">
+                        <i class="fas fa-shopping-cart text-4xl mb-3"></i>
+                        <p>Your cart is empty</p>
+                    </div>
+                </div>
+                
+                <div class="border-t pt-4 mb-6">
+                    <div class="flex justify-between mb-2">
+                        <span class="font-medium">Subtotal:</span>
+                        <span id="cartSubtotal" class="font-bold">GH₵0.00</span>
+                    </div>
+                    <div class="flex justify-between mb-2">
+                        <span class="font-medium">Delivery Fee:</span>
+                        <span id="deliveryFee" class="font-bold">GH₵5.00</span>
+                    </div>
+                    <div class="flex justify-between text-lg font-bold">
+                        <span>Total:</span>
+                        <span id="cartTotal" class="text-orange-600">GH₵5.00</span>
+                    </div>
+                </div>
+                
+                <button id="checkoutBtn" class="w-full bg-orange-600 text-white py-3 rounded-lg font-bold hover:bg-orange-700 transition duration-300">
+                    Proceed to Checkout <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Checkout Tab -->
+        <div id="checkout" class="tab-content">
+            <section class="max-w-2xl mx-auto">
+                <h2 class="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">Checkout</h2>
+                
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h3 class="text-lg font-bold mb-4">Delivery Information</h3>
+                    
+                    <form id="deliveryForm">
+                        <div class="mb-4">
+                            <label for="name" class="block text-gray-700 font-medium mb-2">Full Name</label>
+                            <input type="text" id="name" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="email" class="block text-gray-700 font-medium mb-2">Email Address</label>
+                            <input type="email" id="email" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" required>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="phone" class="block text-gray-700 font-medium mb-2">Phone Number</label>
+                            <input type="tel" id="phone" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" required>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="address" class="block text-gray-700 font-medium mb-2">Delivery Address</label>
+                            <textarea id="address" rows="3" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" required></textarea>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="notes" class="block text-gray-700 font-medium mb-2">Delivery Notes (Optional)</label>
+                            <textarea id="notes" rows="2" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"></textarea>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h3 class="text-lg font-bold mb-4">Order Summary</h3>
+                    
+                    <div id="checkoutItems">
+                        <!-- Order items will be added here dynamically -->
+                    </div>
+                    
+                    <div class="border-t pt-4 mt-4">
+                        <div class="flex justify-between mb-2">
+                            <span class="font-medium">Subtotal:</span>
+                            <span id="checkoutSubtotal" class="font-bold">GH₵0.00</span>
+                        </div>
+                        <div class="flex justify-between mb-2">
+                            <span class="font-medium">Delivery Fee:</span>
+                            <span id="checkoutDelivery" class="font-bold">GH₵5.00</span>
+                        </div>
+                        <div class="flex justify-between text-lg font-bold">
+                            <span>Total:</span>
+                            <span id="checkoutTotal" class="text-orange-600">GH₵5.00</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h3 class="text-lg font-bold mb-4">Payment Method</h3>
+                    
+                    <div class="space-y-3">
+                        <div class="flex items-center">
+                            <input type="radio" id="card" name="payment" value="card" class="mr-2" checked>
+                            <label for="card" class="font-medium">Mobile Money (MoMo)</label>
+                        </div>
+
+                        <div class="flex items-center">
+                            <input type="radio" id="cash" name="payment" value="cash" class="mr-2" disabled>
+                            <label for="cash" class="font-medium text-gray-500">Cash on Delivery</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="radio" id="momo" name="payment" value="momo" class="mr-2" disabled>
+                            <label for="momo" class="font-medium text-gray-500">Pay with Card (Secure Paystack Payment)</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row justify-between gap-4">
+                    <button id="backToCart" class="px-6 py-3 border border-orange-600 text-orange-600 rounded-lg font-medium hover:bg-orange-50 transition duration-300 flex-1">
+                        <i class="fas fa-arrow-left mr-2"></i> Back to Cart
+                    </button>
+                    <button id="placeOrderBtn" class="px-6 py-3 bg-orange-600 text-white rounded-lg font-bold hover:bg-orange-700 transition duration-300 flex-1">
+                        Place Order <i class="fas fa-check ml-2"></i>
+                    </button>
+                </div>
+            </section>
+        </div>
+
+        <!-- Order Confirmation Modal -->
+        <div id="confirmationModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 hidden">
+            <div class="bg-white rounded-lg max-w-md w-full p-6 text-center transform transition-all duration-300 scale-95 opacity-0" id="confirmationContent">
+                <div class="text-green-500 text-5xl mb-4">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-2">Order Confirmed!</h3>
+                <p class="text-gray-600 mb-6">Thank you for your order. We've received it and will start preparing your food right away.</p>
+                <p class="text-gray-600 mb-6 font-medium">Your order ID: <span id="orderId" class="text-orange-600">#12345</span></p>
+                <button id="closeConfirmation" class="w-full bg-orange-600 text-white py-3 rounded-lg font-bold hover:bg-orange-700 transition duration-300">
+                    Back to Home <i class="fas fa-home ml-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- About Us Tab -->
+        <div id="about" class="tab-content">
+            <section class="max-w-4xl mx-auto">
+                <h2 class="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">About Us</h2>
+                
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h3 class="text-xl font-bold mb-4 text-orange-600">Our Story</h3>
+                    <p class="text-gray-700 mb-4">
+                        Delicious Bites was founded in 2015 with a simple mission: to bring authentic Ghanaian cuisine to your doorstep. 
+                        What started as a small family-owned kitchen has grown into one of the most loved food delivery services in the region.
+                    </p>
+                    <p class="text-gray-700">
+                        We take pride in using traditional recipes passed down through generations, combined with fresh, locally-sourced ingredients 
+                        to create meals that taste like home.
+                    </p>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h3 class="text-xl font-bold mb-4 text-orange-600">Our Chefs</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="flex items-start">
+                            <img src="https://randomuser.me/api/portraits/women/65.jpg" alt="Chef Ama" class="w-16 h-16 rounded-full object-cover mr-4">
+                            <div>
+                                <h4 class="font-bold text-gray-800">Chef Ama</h4>
+                                <p class="text-gray-600 text-sm">Head Chef</p>
+                                <p class="text-gray-700 mt-2">With over 20 years of experience, Chef Ama brings traditional flavors to every dish.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Chef Kwame" class="w-16 h-16 rounded-full object-cover mr-4">
+                            <div>
+                                <h4 class="font-bold text-gray-800">Chef Kwame</h4>
+                                <p class="text-gray-600 text-sm">Sous Chef</p>
+                                <p class="text-gray-700 mt-2">Specializing in seafood and soups, Chef Kwame adds his unique touch to every meal.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-bold mb-4 text-orange-600">Our Promise</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-orange-50 p-4 rounded-lg hover:shadow-md transition duration-300">
+                            <div class="text-orange-500 text-2xl mb-2">
+                                <i class="fas fa-heart"></i>
+                            </div>
+                            <h4 class="font-bold text-gray-800 mb-1">Quality</h4>
+                            <p class="text-gray-700 text-sm">Only the freshest ingredients</p>
+                        </div>
+                        <div class="bg-orange-50 p-4 rounded-lg hover:shadow-md transition duration-300">
+                            <div class="text-orange-500 text-2xl mb-2">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <h4 class="font-bold text-gray-800 mb-1">Timely</h4>
+                            <p class="text-gray-700 text-sm">45-minute delivery guarantee</p>
+                        </div>
+                        <div class="bg-orange-50 p-4 rounded-lg hover:shadow-md transition duration-300">
+                            <div class="text-orange-500 text-2xl mb-2">
+                                <i class="fas fa-smile"></i>
+                            </div>
+                            <h4 class="font-bold text-gray-800 mb-1">Satisfaction</h4>
+                            <p class="text-gray-700 text-sm">100% customer happiness</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Contact Tab -->
+        <div id="contact" class="tab-content">
+            <section class="max-w-4xl mx-auto">
+                <h2 class="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">Contact Us</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-xl font-bold mb-4 text-orange-600">Get in Touch</h3>
+                        
+                        <form id="contactForm">
+                            <div class="mb-4">
+                                <label for="contactName" class="block text-gray-700 font-medium mb-2">Your Name</label>
+                                <input type="text" id="contactName" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" required>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="contactEmail" class="block text-gray-700 font-medium mb-2">Email Address</label>
+                                <input type="email" id="contactEmail" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" required>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="contactSubject" class="block text-gray-700 font-medium mb-2">Subject</label>
+                                <input type="text" id="contactSubject" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" required>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="contactMessage" class="block text-gray-700 font-medium mb-2">Message</label>
+                                <textarea id="contactMessage" rows="4" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" required></textarea>
+                            </div>
+                            
+                            <button type="submit" class="w-full bg-orange-600 text-white py-3 rounded-lg font-bold hover:bg-orange-700 transition duration-300">
+                                Send Message <i class="fas fa-paper-plane ml-2"></i>
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-xl font-bold mb-4 text-orange-600">Our Information</h3>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-start">
+                                <div class="text-orange-500 text-xl mr-4 mt-1">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-gray-800">Address</h4>
+                                    <p class="text-gray-700">123 Food Street, Accra, Ghana</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="text-orange-500 text-xl mr-4 mt-1">
+                                    <i class="fas fa-phone-alt"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-gray-800">Phone</h4>
+                                    <p class="text-gray-700">+233 123 456 789</p>
+                                    <p class="text-gray-700">+233 987 654 321</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="text-orange-500 text-xl mr-4 mt-1">
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-gray-800">Email</h4>
+                                    <p class="text-gray-700">info@deliciousbites.com</p>
+                                    <p class="text-gray-700">support@deliciousbites.com</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="text-orange-500 text-xl mr-4 mt-1">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-gray-800">Opening Hours</h4>
+                                    <p class="text-gray-700">Monday - Friday: 8:00 AM - 10:00 PM</p>
+                                    <p class="text-gray-700">Saturday - Sunday: 9:00 AM - 11:00 PM</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <h4 class="font-bold text-gray-800 mb-3">Follow Us</h4>
+                            <div class="flex space-x-4">
+                                <a href="#" class="text-orange-500 hover:text-orange-600 text-2xl">
+                                    <i class="fab fa-facebook"></i>
+                                </a>
+                                <a href="#" class="text-orange-500 hover:text-orange-600 text-2xl">
+                                    <i class="fab fa-twitter"></i>
+                                </a>
+                                <a href="#" class="text-orange-500 hover:text-orange-600 text-2xl">
+                                    <i class="fab fa-instagram"></i>
+                                </a>
+                                <a href="#" class="text-orange-500 hover:text-orange-600 text-2xl">
+                                    <i class="fab fa-whatsapp"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Delicious Bites</h3>
+                    <p class="text-gray-400">Bringing authentic Ghanaian cuisine to your doorstep since 2015.</p>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-orange-500 transition duration-300" data-tab="home">Home</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-orange-500 transition duration-300" data-tab="menu">Menu</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-orange-500 transition duration-300" data-tab="about">About Us</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-orange-500 transition duration-300" data-tab="contact">Contact</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Contact Us</h3>
+                    <ul class="space-y-2">
+                        <li class="flex items-start">
+                            <i class="fas fa-map-marker-alt text-orange-500 mt-1 mr-2"></i>
+                            <span class="text-gray-400">123 Food Street, Accra</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-phone-alt text-orange-500 mt-1 mr-2"></i>
+                            <span class="text-gray-400">+233 123 456 789</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-envelope text-orange-500 mt-1 mr-2"></i>
+                            <span class="text-gray-400">info@deliciousbites.com</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Newsletter</h3>
+                    <p class="text-gray-400 mb-3">Subscribe to get updates on new dishes and special offers.</p>
+                    <form class="flex">
+                        <input type="email" placeholder="Your email" class="px-3 py-2 rounded-l-lg focus:outline-none text-gray-800 w-full">
+                        <button type="submit" class="bg-orange-600 px-4 py-2 rounded-r-lg hover:bg-orange-700 transition duration-300">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 mt-8 pt-6 text-center text-gray-400">
+                <p>&copy; 2025 Delicious Bites. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
     <script>
-        // Physics-based card flipping
-        const card = document.querySelector('.card');
-        const flipBtn = document.getElementById('flipBtn');
-        const flipBackBtn = document.getElementById('flipBackBtn');
-        
-        flipBtn.addEventListener('click', () => {
-            card.classList.toggle('flipped');
+        // Food Data
+        const foodItems = [
+            {
+                id: 1,
+                name: "Plain Rice",
+                category: "rice",
+                description: "Steamed white rice served with your choice of sauce and protein.",
+                price: 10,
+                image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
+                attachments: [
+                    { id: 1, name: "Fish", price: 12 },
+                    { id: 2, name: "Cow Meat", price: 10 },
+                    { id: 3, name: "Goat Meat", price: 15 },
+                    { id: 4, name: "Chicken", price: 8 }
+                ]
+            },
+            {
+                id: 2,
+                name: "Jollof Rice",
+                category: "jollof",
+                description: "Our famous party-style jollof rice with a blend of spices and tomato sauce.",
+                price: 15,
+                image: "https://images.unsplash.com/photo-1603360946369-dc9bb6258143?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
+                attachments: [
+                    { id: 1, name: "Fried Chicken", price: 10 },
+                    { id: 2, name: "Grilled Tilapia", price: 15 },
+                    { id: 3, name: "Beef", price: 12 }
+                ]
+            },
+            {
+                id: 3,
+                name: "Banku with Tilapia",
+                category: "banku",
+                description: "Traditional banku served with grilled tilapia and hot pepper sauce.",
+                price: 20,
+                image: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
+                attachments: [
+                    { id: 1, name: "Extra Fish", price: 15 },
+                    { id: 2, name: "Extra Banku", price: 5 }
+                ]
+            },
+            {
+                id: 4,
+                name: "Fufu with Light Soup",
+                category: "fufu",
+                description: "Pounded fufu served with light soup and your choice of protein.",
+                price: 18,
+                image: "https://images.unsplash.com/photo-1603360946369-dc9bb6258143?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
+                attachments: [
+                    { id: 1, name: "Goat Meat", price: 15 },
+                    { id: 2, name: "Chicken", price: 10 },
+                    { id: 3, name: "Fish", price: 12 }
+                ]
+            },
+            {
+                id: 5,
+                name: "Waakye",
+                category: "rice",
+                description: "Rice and beans cooked with millet leaves, served with spaghetti, gari, and sauce.",
+                price: 12,
+                image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
+                attachments: [
+                    { id: 1, name: "Egg", price: 3 },
+                    { id: 2, name: "Fish", price: 12 },
+                    { id: 3, name: "Beef", price: 10 }
+                ]
+            },
+            {
+                id: 6,
+                name: "Fried Rice",
+                category: "rice",
+                description: "Fried rice with vegetables and your choice of protein.",
+                price: 15,
+                image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
+                attachments: [
+                    { id: 1, name: "Chicken", price: 10 },
+                    { id: 2, name: "Beef", price: 12 },
+                    { id: 3, name: "Shrimp", price: 18 }
+                ]
+            },
+            {
+                id: 7,
+                name: "Banku with Okro Soup",
+                category: "banku",
+                description: "Traditional banku served with okro soup and your choice of protein.",
+                price: 20,
+                image: "https://images.unsplash.com/photo-1563805042-7684c019e1cb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
+                attachments: [
+                    { id: 1, name: "Fish", price: 12 },
+                    { id: 2, name: "Crab", price: 20 }
+                ]
+            },
+            {
+                id: 8,
+                name: "Fufu with Palm Nut Soup",
+                category: "fufu",
+                description: "Pounded fufu served with rich palm nut soup and your choice of protein.",
+                price: 20,
+                image: "https://images.unsplash.com/photo-1603360946369-dc9bb6258143?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
+                attachments: [
+                    { id: 1, name: "Goat Meat", price: 15 },
+                    { id: 2, name: "Snail", price: 25 }
+                ]
+            },
+            {
+                id: 9,
+                name: "Fried Yam with Stew",
+                category: "sides",
+                description: "Crispy fried yam served with spicy tomato stew and your choice of protein.",
+                price: 12,
+                image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
+                attachments: [
+                    { id: 1, name: "Egg", price: 3 },
+                    { id: 2, name: "Fish", price: 12 },
+                    { id: 3, name: "Chicken", price: 10 }
+                ]
+            },
+            {
+                id: 10,
+                name: "Plantain with Beans",
+                category: "sides",
+                description: "Ripe plantain served with spicy beans stew.",
+                price: 10,
+                image: "https://images.unsplash.com/photo-1601050690597-df0568f70950?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80",
+                attachments: [
+                    { id: 1, name: "Egg", price: 3 },
+                    { id: 2, name: "Fish", price: 12 }
+                ]
+            }
+        ];
+
+        // Cart Data
+        let cart = [];
+        let currentFoodItem = null;
+
+        // DOM Elements
+        const cartBtn = document.getElementById('cartBtn');
+        const closeCart = document.getElementById('closeCart');
+        const cartSidebar = document.getElementById('cartSidebar');
+        const cartItems = document.getElementById('cartItems');
+        const cartCount = document.getElementById('cartCount');
+        const cartSubtotal = document.getElementById('cartSubtotal');
+        const cartTotal = document.getElementById('cartTotal');
+        const checkoutBtn = document.getElementById('checkoutBtn');
+        const backToCart = document.getElementById('backToCart');
+        const placeOrderBtn = document.getElementById('placeOrderBtn');
+        const foodModal = document.getElementById('foodModal');
+        const modalContent = document.getElementById('modalContent');
+        const closeModal = document.getElementById('closeModal');
+        const addToCartBtn = document.getElementById('addToCartBtn');
+        const quantityElement = document.getElementById('quantity');
+        const quantityButtons = document.querySelectorAll('.quantity-btn');
+        const foodItemsContainer = document.getElementById('foodItems');
+        const categoryButtons = document.querySelectorAll('.category-btn');
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const orderNowButtons = document.querySelectorAll('.order-now-btn');
+        const deliveryForm = document.getElementById('deliveryForm');
+        const checkoutItems = document.getElementById('checkoutItems');
+        const checkoutSubtotal = document.getElementById('checkoutSubtotal');
+        const checkoutDelivery = document.getElementById('checkoutDelivery');
+        const checkoutTotal = document.getElementById('checkoutTotal');
+        const confirmationModal = document.getElementById('confirmationModal');
+        const confirmationContent = document.getElementById('confirmationContent');
+        const closeConfirmation = document.getElementById('closeConfirmation');
+        const orderId = document.getElementById('orderId');
+        const menuBtn = document.getElementById('menuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const foodCards = document.querySelectorAll('.food-card');
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            loadFoodItems();
+            updateCartCount();
         });
-        
-        flipBackBtn.addEventListener('click', () => {
-            card.classList.toggle('flipped');
+
+        cartBtn.addEventListener('click', toggleCart);
+        closeCart.addEventListener('click', toggleCart);
+        checkoutBtn.addEventListener('click', () => {
+            toggleCart();
+            switchTab('checkout');
         });
-        
-        // Picture-in-Picture video functionality
-        const mainVideo = document.querySelector('.main-video');
-        const pipVideo = document.querySelector('.pip-video');
-        
-        // Make PIP video draggable
-        pipVideo.addEventListener('loadedmetadata', () => {
-            makeDraggable(pipVideo);
+        backToCart.addEventListener('click', () => {
+            switchTab('menu');
+            toggleCart();
         });
-        
-        // Sync videos
-        mainVideo.addEventListener('play', () => {
-            pipVideo.play();
+        closeModal.addEventListener('click', () => {
+            modalContent.classList.remove('scale-100', 'opacity-100');
+            modalContent.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                foodModal.classList.add('hidden');
+            }, 300);
         });
-        
-        mainVideo.addEventListener('pause', () => {
-            pipVideo.pause();
+        addToCartBtn.addEventListener('click', addToCart);
+        closeConfirmation.addEventListener('click', () => {
+            confirmationContent.classList.remove('scale-100', 'opacity-100');
+            confirmationContent.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                confirmationModal.classList.add('hidden');
+                switchTab('home');
+            }, 300);
         });
-        
-        mainVideo.addEventListener('seeked', () => {
-            pipVideo.currentTime = mainVideo.currentTime;
+
+        quantityButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const action = button.getAttribute('data-action');
+                let quantity = parseInt(quantityElement.textContent);
+                
+                if (action === 'increase') {
+                    quantity++;
+                } else if (action === 'decrease' && quantity > 1) {
+                    quantity--;
+                }
+                
+                quantityElement.textContent = quantity;
+                updateModalTotalPrice();
+            });
         });
-        
-        // Voice command functionality
-        const voiceBtn = document.getElementById('voiceBtn');
-        const voiceCommands = document.getElementById('voiceCommands');
-        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        
-        let isListening = false;
-        
-        voiceBtn.addEventListener('click', () => {
-            if (isListening) {
-                recognition.stop();
-                voiceBtn.classList.remove('listening');
-                voiceCommands.style.display = 'none';
+
+        categoryButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                categoryButtons.forEach(btn => {
+                    btn.classList.remove('bg-orange-600', 'text-white');
+                    btn.classList.add('bg-gray-200', 'text-gray-800');
+                });
+                
+                button.classList.remove('bg-gray-200', 'text-gray-800');
+                button.classList.add('bg-orange-600', 'text-white');
+                
+                const category = button.getAttribute('data-category');
+                filterFoodItems(category);
+            });
+        });
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabId = button.getAttribute('data-tab');
+                switchTab(tabId);
+            });
+        });
+
+        orderNowButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabId = button.getAttribute('data-tab');
+                switchTab(tabId);
+            });
+        });
+
+        placeOrderBtn.addEventListener('click', placeOrder);
+        menuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+            if (mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.remove('mobile-menu-open');
             } else {
-                recognition.start();
-                voiceBtn.classList.add('listening');
-                voiceCommands.style.display = 'block';
+                mobileMenu.classList.add('mobile-menu-open');
             }
-            isListening = !isListening;
         });
-        
-        recognition.onresult = (event) => {
-            const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase();
+
+        foodCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const category = card.getAttribute('data-category');
+                filterFoodItems(category);
+                switchTab('menu');
+                
+                // Update category button to active
+                categoryButtons.forEach(btn => {
+                    if (btn.getAttribute('data-category') === category) {
+                        btn.classList.remove('bg-gray-200', 'text-gray-800');
+                        btn.classList.add('bg-orange-600', 'text-white');
+                    } else {
+                        btn.classList.remove('bg-orange-600', 'text-white');
+                        btn.classList.add('bg-gray-200', 'text-gray-800');
+                    }
+                });
+            });
+        });
+
+        // Functions
+        function loadFoodItems() {
+            foodItemsContainer.innerHTML = '';
             
-            if (transcript.includes('flip card')) {
-                card.classList.toggle('flipped');
-                speak("Flipping card");
-            } else if (transcript.includes('play video')) {
-                mainVideo.play();
-                speak("Playing video");
-            } else if (transcript.includes('pause video')) {
-                mainVideo.pause();
-                speak("Video paused");
-            } else if (transcript.includes('show skills')) {
-                highlightSkills();
-                speak("Showing skills");
-            } else if (transcript.includes('contact me')) {
-                highlightSocial();
-                speak("Here are my social links");
+            foodItems.forEach(item => {
+                const foodItem = document.createElement('div');
+                foodItem.className = 'food-card bg-white rounded-lg overflow-hidden shadow-md cursor-pointer transition duration-300';
+                foodItem.setAttribute('data-id', item.id);
+                foodItem.setAttribute('data-category', item.category);
+                foodItem.innerHTML = `
+                    <img src="${item.image}" alt="${item.name}" class="w-full h-40 object-cover">
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-bold text-lg">${item.name}</h3>
+                            <span class="font-bold text-orange-600">GH₵${item.price.toFixed(2)}</span>
+                        </div>
+                        <p class="text-gray-600 text-sm mb-3">${item.description.substring(0, 60)}...</p>
+                        <button class="w-full bg-orange-100 text-orange-600 py-2 rounded-lg font-medium hover:bg-orange-200 transition duration-300 add-to-cart-btn">
+                            Add to Cart <i class="fas fa-plus ml-1"></i>
+                        </button>
+                    </div>
+                `;
+                
+                foodItem.querySelector('.add-to-cart-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openFoodModal(item);
+                });
+                
+                foodItem.addEventListener('click', () => {
+                    openFoodModal(item);
+                });
+                
+                foodItemsContainer.appendChild(foodItem);
+            });
+        }
+
+        function filterFoodItems(category) {
+            const items = document.querySelectorAll('.food-card');
+            
+            items.forEach(item => {
+                if (category === 'all' || item.getAttribute('data-category') === category) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        function openFoodModal(item) {
+            currentFoodItem = item;
+            document.getElementById('modalFoodName').textContent = item.name;
+            document.getElementById('modalFoodImage').src = item.image;
+            document.getElementById('modalFoodImage').alt = item.name;
+            document.getElementById('modalFoodDesc').textContent = item.description;
+            document.getElementById('modalBasePrice').textContent = `GH₵${item.price.toFixed(2)}`;
+            document.getElementById('quantity').textContent = '1';
+            
+            // Clear previous attachments
+            const attachmentsContainer = document.getElementById('attachmentsContainer');
+            attachmentsContainer.innerHTML = '<h4 class="font-medium text-gray-800 mb-2">Add Attachments:</h4>';
+            
+            // Add new attachments
+            if (item.attachments && item.attachments.length > 0) {
+                item.attachments.forEach(attachment => {
+                    const attachmentDiv = document.createElement('div');
+                    attachmentDiv.className = 'flex items-center mb-2';
+                    attachmentDiv.innerHTML = `
+                        <input type="radio" id="attachment-${attachment.id}" name="attachment" value="${attachment.id}" class="mr-2">
+                        <label for="attachment-${attachment.id}" class="flex-1">${attachment.name} (+GH₵${attachment.price.toFixed(2)})</label>
+                    `;
+                    attachmentsContainer.appendChild(attachmentDiv);
+                });
+                
+                // Add "None" option
+                const noneDiv = document.createElement('div');
+                noneDiv.className = 'flex items-center mb-2';
+                noneDiv.innerHTML = `
+                    <input type="radio" id="attachment-none" name="attachment" value="none" class="mr-2" checked>
+                    <label for="attachment-none" class="flex-1">None</label>
+                `;
+                attachmentsContainer.appendChild(noneDiv);
+            } else {
+                const noAttachments = document.createElement('p');
+                noAttachments.className = 'text-gray-500 italic';
+                noAttachments.textContent = 'No attachments available for this item';
+                attachmentsContainer.appendChild(noAttachments);
             }
-        };
-        
-        recognition.onerror = (event) => {
-            console.error('Speech recognition error', event.error);
-        };
-        
-        function speak(text) {
-            const utterance = new SpeechSynthesisUtterance(text);
-            window.speechSynthesis.speak(utterance);
+            
+            // Update total price
+            updateModalTotalPrice();
+            
+            // Show modal with animation
+            foodModal.classList.remove('hidden');
+            setTimeout(() => {
+                modalContent.classList.remove('scale-95', 'opacity-0');
+                modalContent.classList.add('scale-100', 'opacity-100');
+            }, 10);
         }
-        
-        function highlightSkills() {
-            const skillBars = document.querySelectorAll('.skill-bar');
-            skillBars.forEach(bar => {
-                bar.style.transition = 'all 0.5s ease';
-                bar.style.transform = 'scale(1.05)';
-                bar.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.2)';
+
+        function updateModalTotalPrice() {
+            if (!currentFoodItem) return;
+            
+            const quantity = parseInt(document.getElementById('quantity').textContent);
+            let total = currentFoodItem.price * quantity;
+            
+            // Check if any attachment is selected
+            const selectedAttachment = document.querySelector('input[name="attachment"]:checked');
+            if (selectedAttachment && selectedAttachment.value !== 'none') {
+                const attachmentId = parseInt(selectedAttachment.value);
+                const attachment = currentFoodItem.attachments.find(a => a.id === attachmentId);
+                if (attachment) {
+                    total += attachment.price * quantity;
+                }
+            }
+            
+            document.getElementById('modalTotalPrice').textContent = `GH₵${total.toFixed(2)}`;
+        }
+
+        function addToCart() {
+            if (!currentFoodItem) return;
+            
+            const quantity = parseInt(document.getElementById('quantity').textContent);
+            let attachment = null;
+            
+            // Check if any attachment is selected
+            const selectedAttachment = document.querySelector('input[name="attachment"]:checked');
+            if (selectedAttachment && selectedAttachment.value !== 'none') {
+                const attachmentId = parseInt(selectedAttachment.value);
+                attachment = currentFoodItem.attachments.find(a => a.id === attachmentId);
+            }
+            
+            // Create cart item
+            const cartItem = {
+                id: Date.now(), // Unique ID for the cart item
+                foodId: currentFoodItem.id,
+                name: currentFoodItem.name,
+                basePrice: currentFoodItem.price,
+                quantity: quantity,
+                attachment: attachment ? {
+                    name: attachment.name,
+                    price: attachment.price
+                } : null,
+                totalPrice: attachment ? 
+                    (currentFoodItem.price + attachment.price) * quantity : 
+                    currentFoodItem.price * quantity
+            };
+            
+            // Add to cart
+            cart.push(cartItem);
+            
+            // Update UI
+            updateCartCount();
+            renderCartItems();
+            updateCartTotals();
+            
+            // Close modal
+            modalContent.classList.remove('scale-100', 'opacity-100');
+            modalContent.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                foodModal.classList.add('hidden');
+            }, 300);
+            
+            // Show success message
+            showToast(`${cartItem.name} added to cart!`);
+            
+            // Add bounce animation to cart icon
+            cartBtn.classList.add('bounce-animation');
+            setTimeout(() => {
+                cartBtn.classList.remove('bounce-animation');
+            }, 500);
+        }
+
+        function renderCartItems() {
+            if (cart.length === 0) {
+                cartItems.innerHTML = `
+                    <div class="text-center py-8 text-gray-500" id="emptyCartMessage">
+                        <i class="fas fa-shopping-cart text-4xl mb-3"></i>
+                        <p>Your cart is empty</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            cartItems.innerHTML = '';
+            
+            cart.forEach(item => {
+                const cartItem = document.createElement('div');
+                cartItem.className = 'flex items-start mb-4 pb-4 border-b';
+                cartItem.innerHTML = `
+                    <div class="flex-1">
+                        <h4 class="font-bold text-gray-800">${item.name}</h4>
+                        ${item.attachment ? `<p class="text-sm text-gray-600">+ ${item.attachment.name}</p>` : ''}
+                        <p class="text-orange-600 font-bold">GH₵${item.totalPrice.toFixed(2)}</p>
+                        <div class="flex items-center mt-2">
+                            <button class="quantity-btn px-2 py-1 bg-gray-200 rounded-l-lg" data-action="decrease" data-id="${item.id}">
+                                <i class="fas fa-minus text-xs"></i>
+                            </button>
+                            <span class="px-3 py-1 bg-gray-100">${item.quantity}</span>
+                            <button class="quantity-btn px-2 py-1 bg-gray-200 rounded-r-lg" data-action="increase" data-id="${item.id}">
+                                <i class="fas fa-plus text-xs"></i>
+                            </button>
+                            <button class="ml-4 text-red-500 hover:text-red-700 remove-item" data-id="${item.id}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
                 
+                cartItems.appendChild(cartItem);
+            });
+            
+            // Add event listeners to new buttons
+            document.querySelectorAll('.quantity-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const action = button.getAttribute('data-action');
+                    const id = parseInt(button.getAttribute('data-id'));
+                    updateCartItemQuantity(id, action);
+                });
+            });
+            
+            document.querySelectorAll('.remove-item').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const id = parseInt(button.getAttribute('data-id'));
+                    removeCartItem(id);
+                });
+            });
+        }
+
+        function updateCartItemQuantity(id, action) {
+            const itemIndex = cart.findIndex(item => item.id === id);
+            if (itemIndex === -1) return;
+            
+            const item = cart[itemIndex];
+            
+            if (action === 'increase') {
+                item.quantity++;
+            } else if (action === 'decrease' && item.quantity > 1) {
+                item.quantity--;
+            }
+            
+            // Recalculate total price
+            item.totalPrice = (item.basePrice + (item.attachment ? item.attachment.price : 0)) * item.quantity;
+            
+            // Update cart
+            cart[itemIndex] = item;
+            
+            // Update UI
+            renderCartItems();
+            updateCartCount();
+            updateCartTotals();
+        }
+
+        function removeCartItem(id) {
+            cart = cart.filter(item => item.id !== id);
+            
+            // Update UI
+            renderCartItems();
+            updateCartCount();
+            updateCartTotals();
+            
+            if (cart.length === 0) {
+                toggleCart();
+            }
+        }
+
+        function updateCartCount() {
+            const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
+            cartCount.textContent = totalItems;
+        }
+
+        function updateCartTotals() {
+            const subtotal = cart.reduce((total, item) => total + item.totalPrice, 0);
+            const deliveryFee = 5; // Fixed delivery fee
+            const total = subtotal + deliveryFee;
+            
+            cartSubtotal.textContent = `GH₵${subtotal.toFixed(2)}`;
+            cartTotal.textContent = `GH₵${total.toFixed(2)}`;
+        }
+
+        function toggleCart() {
+    // Only prevent opening if cart is empty and currently closed
+    if (cart.length === 0 && cartSidebar.classList.contains('translate-x-full')) {
+        return; // Don't open empty cart
+    }
+    
+    if (cartSidebar.classList.contains('translate-x-full')) {
+        // Open cart
+        cartSidebar.classList.remove('translate-x-full');
+        cartSidebar.classList.add('cart-open');
+        document.body.classList.add('overflow-hidden');
+    } else {
+        // Close cart
+        cartSidebar.classList.add('translate-x-full');
+        cartSidebar.classList.add('cart-closed');
+        document.body.classList.remove('overflow-hidden');
+        
+        // Remove animation classes after animation completes
+        setTimeout(() => {
+            cartSidebar.classList.remove('cart-open', 'cart-closed');
+        }, 300);
+    }
+    
+    if (!cartSidebar.classList.contains('translate-x-full')) {
+        renderCartItems();
+        updateCartTotals();
+    }
+}
+
+        function switchTab(tabId) {
+            // Hide all tabs
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Show selected tab
+            const activeTab = document.getElementById(tabId);
+            activeTab.classList.add('active');
+            
+            // Update tab buttons
+            tabButtons.forEach(button => {
+                if (button.getAttribute('data-tab') === tabId) {
+                    button.classList.add('active');
+                } else {
+                    button.classList.remove('active');
+                }
+            });
+            
+            // Hide mobile menu if open
+            mobileMenu.classList.add('hidden');
+            mobileMenu.classList.remove('mobile-menu-open');
+            
+            // Special handling for checkout tab
+            if (tabId === 'checkout') {
+                renderCheckoutItems();
+            }
+            
+            // Scroll to top of the tab
+            activeTab.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function renderCheckoutItems() {
+            checkoutItems.innerHTML = '';
+            
+            if (cart.length === 0) {
+                checkoutItems.innerHTML = '<p class="text-gray-500 text-center py-4">Your cart is empty</p>';
+                return;
+            }
+            
+            cart.forEach(item => {
+                const checkoutItem = document.createElement('div');
+                checkoutItem.className = 'flex justify-between items-center mb-3 pb-3 border-b';
+                checkoutItem.innerHTML = `
+                    <div>
+                        <h4 class="font-medium text-gray-800">${item.name} × ${item.quantity}</h4>
+                        ${item.attachment ? `<p class="text-sm text-gray-600">+ ${item.attachment.name}</p>` : ''}
+                    </div>
+                    <span class="font-bold">GH₵${item.totalPrice.toFixed(2)}</span>
+                `;
+                
+                checkoutItems.appendChild(checkoutItem);
+            });
+            
+            // Update totals
+            const subtotal = cart.reduce((total, item) => total + item.totalPrice, 0);
+            const deliveryFee = 5; // Fixed delivery fee
+            const total = subtotal + deliveryFee;
+            
+            checkoutSubtotal.textContent = `GH₵${subtotal.toFixed(2)}`;
+            checkoutDelivery.textContent = `GH₵${deliveryFee.toFixed(2)}`;
+            checkoutTotal.textContent = `GH₵${total.toFixed(2)}`;
+        }
+
+        function placeOrder() {
+            // Validate form
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+            const address = document.getElementById('address').value;
+            const email = document.getElementById('email').value;
+            const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
+            
+            if (!name || !phone || !address) {
+                showToast('Please fill in all required fields', 'error');
+                return;
+            }
+            
+            // For card payments, email is required
+            if (paymentMethod === 'card' && !email) {
+                showToast('Email is required for card payments', 'error');
+                return;
+            }
+            
+            // Prepare order data
+            const orderData = {
+                customer: {
+                    name: name,
+                    phone: phone,
+                    email: email,
+                    address: address,
+                    notes: document.getElementById('notes').value
+                },
+                paymentMethod: paymentMethod,
+                items: cart,
+                subtotal: cart.reduce((total, item) => total + item.totalPrice, 0),
+                deliveryFee: 5,
+                total: cart.reduce((total, item) => total + item.totalPrice, 0) + 5,
+                status: paymentMethod === 'cash' ? 'pending' : 'processing',
+                date: new Date().toISOString()
+            };
+            
+            // Process based on payment method
+            if (paymentMethod === 'card') {
+                processPaystackPayment(orderData);
+            } else {
+                // For cash/momo, complete order directly
+                if (paymentMethod === 'momo') {
+                    orderData.status = 'paid'; // Assuming MoMo payments are instant
+                }
+                completeOrder(orderData);
+            }
+        }
+
+       
+
+        function completeOrder(orderData) {
+            // Generate random order ID
+            const randomOrderId = '#' + Math.floor(10000 + Math.random() * 90000);
+            orderId.textContent = randomOrderId;
+            
+            // Show confirmation modal with animation
+            confirmationModal.classList.remove('hidden');
+            setTimeout(() => {
+                confirmationContent.classList.remove('scale-95', 'opacity-0');
+                confirmationContent.classList.add('scale-100', 'opacity-100');
+            }, 10);
+            
+            // Clear cart
+            cart = [];
+            updateCartCount();
+            
+            // Reset form
+            deliveryForm.reset();
+            
+            // Switch to home tab after delay
+            setTimeout(() => {
+                confirmationContent.classList.remove('scale-100', 'opacity-100');
+                confirmationContent.classList.add('scale-95', 'opacity-0');
                 setTimeout(() => {
-                    bar.style.transform = 'scale(1)';
-                    bar.style.boxShadow = 'none';
-                }, 2000);
-            });
+                    confirmationModal.classList.add('hidden');
+                    switchTab('home');
+                }, 300);
+            }, 5000);
+            
+            // In a real app, you would send orderData to your backend here
+            console.log('Order completed:', orderData);
         }
-        
-        function highlightSocial() {
-            const socialIcons = document.querySelectorAll('.social-icons a');
-            socialIcons.forEach(icon => {
-                icon.style.transition = 'all 0.5s ease';
-                icon.style.transform = 'scale(1.2) translateY(-5px)';
-                icon.style.boxShadow = '0 8px 15px rgba(0, 0, 0, 0.2)';
-                
+
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white font-medium ${
+                type === 'success' ? 'bg-green-500' : 'bg-red-500'
+            } transform transition-all duration-300 translate-y-4 opacity-0`;
+            toast.textContent = message;
+            
+            document.body.appendChild(toast);
+            
+            // Animate in
+            setTimeout(() => {
+                toast.classList.remove('translate-y-4', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+            }, 10);
+            
+            // Animate out after delay
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-4', 'opacity-0');
                 setTimeout(() => {
-                    icon.style.transform = 'scale(1) translateY(0)';
-                    icon.style.boxShadow = 'none';
-                }, 2000);
-            });
+                    toast.remove();
+                }, 300);
+            }, 3000);
         }
+
+        // Listen for attachment changes to update price
+        document.addEventListener('change', (e) => {
+             if (e.target.name === 'attachment') {
+                updateModalTotalPrice();
+            }
+        });
+
+        // Paystack Payment Function
+// NEW VERSION (use this instead)
+async function processPaystackPayment(orderData) {
+    const email = document.getElementById('email').value;
+    const amount = orderData.total * 100;
+    
+    // Prepare metadata (same as before)
+    const metadata = {
+        custom_fields: [/*...*/]
+    };
+
+    try {
+        // NEW: Call Netlify function first
+        const response = await fetch('/.netlify/functions/init-paystack', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, amount, metadata })
+        });
+
+        const data = await response.json();
+
+        // Rest is similar but uses data from Netlify function
+        let handler = PaystackPop.setup({
+            key: data.key, // ← Now comes from Netlify
+            email: data.email,
+            amount: data.amount,
+            currency: 'GHS',
+            metadata: data.metadata,
+            callback: function(response) {
+                orderData.paymentReference = response.reference;
+                orderData.status = 'paid';
+                completeOrder(orderData); // ← Keep your existing completeOrder
+            },
+            onClose: function() {
+                showToast('Payment window closed', 'error'); // ← Keep existing
+            }
+        });
+        handler.openIframe();
+    } catch (error) {
+        console.error('Payment error:', error);
+        showToast('Payment failed: ' + error.message, 'error');
+    }
+}
+
+// Main placeOrder function
+function placeOrder() {
+    // Validate form
+    const name = document.getElementById('name').value;
+    const phone = document.getElementById('phone').value;
+    const address = document.getElementById('address').value;
+    const email = document.getElementById('email').value;
+    const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
+    
+    if (!name || !phone || !address) {
+        showToast('Please fill in all required fields', 'error');
+        return;
+    }
+    
+    // For card payments, email is required
+    if (paymentMethod === 'card' && !email) {
+        showToast('Email is required for card payments', 'error');
+        return;
+    }
+    
+    // Prepare order data
+    const orderData = {
+        customer: {
+            name: name,
+            phone: phone,
+            email: email,
+            address: address,
+            notes: document.getElementById('notes').value
+        },
+        paymentMethod: paymentMethod,
+        items: cart,
+        subtotal: cart.reduce((total, item) => total + item.totalPrice, 0),
+        deliveryFee: 5,
+        total: cart.reduce((total, item) => total + item.totalPrice, 0) + 5,
+        status: paymentMethod === 'cash' ? 'pending' : 'processing',
+        date: new Date().toISOString()
+    };
+    
+    // Process based on payment method
+    if (paymentMethod === 'card') {
+        processPaystackPayment(orderData);
+    } else {
+        // For cash/momo, complete order directly
+        if (paymentMethod === 'momo') {
+            orderData.status = 'paid'; // Assuming MoMo payments are instant
+        }
+        completeOrder(orderData);
+    }
+}
+
+// Function to complete the order (common for all payment methods)
+function completeOrder(orderData) {
+    // Generate random order ID
+    const randomOrderId = '#' + Math.floor(10000 + Math.random() * 90000);
+    orderId.textContent = randomOrderId;
+    
+    // Show confirmation modal
+    confirmationModal.classList.remove('hidden');
+    
+    // Clear cart
+    cart = [];
+    updateCartCount();
+    
+    // Reset form
+    deliveryForm.reset();
+    
+    // Switch to home tab after delay
+    setTimeout(() => {
+        confirmationModal.classList.add('hidden');
+        switchTab('home');
+    }, 5000);
+    
+    // In a real app, you would send orderData to your backend here
+    console.log('Order completed:', orderData);
+    
+    // For Paystack payments, you would typically verify the payment on your backend
+    if (orderData.paymentMethod === 'card') {
+        // verifyPayment(orderData.paymentReference);
+    }
+}
+
         
-        function makeDraggable(element) {
-            let isDragging = false;
-            let startX, startY, initialX, initialY;
-            
-            element.addEventListener('mousedown', (e) => {
-                isDragging = true;
-                startX = e.clientX;
-                startY = e.clientY;
-                initialX = parseInt(getComputedStyle(element).left, 10) || 0;
-                initialY = parseInt(getComputedStyle(element).top, 10) || 0;
-                element.style.cursor = 'grabbing';
-            });
-            
-            document.addEventListener('mousemove', (e) => {
-                if (!isDragging) return;
-                
-                const dx = e.clientX - startX;
-                const dy = e.clientY - startY;
-                
-                element.style.left = `${initialX + dx}px`;
-                element.style.top = `${initialY + dy}px`;
-            });
-            
-            document.addEventListener('mouseup', () => {
-                isDragging = false;
-                element.style.cursor = 'grab';
-            });
-            
-            // Touch events for mobile
-            element.addEventListener('touchstart', (e) => {
-                isDragging = true;
-                startX = e.touches[0].clientX;
-                startY = e.touches[0].clientY;
-                initialX = parseInt(getComputedStyle(element).left, 10) || 0;
-                initialY = parseInt(getComputedStyle(element).top, 10) || 0;
-            });
-            
-            document.addEventListener('touchmove', (e) => {
-                if (!isDragging) return;
-                
-                const dx = e.touches[0].clientX - startX;
-                const dy = e.touches[0].clientY - startY;
-                
-                element.style.left = `${initialX + dx}px`;
-                element.style.top = `${initialY + dy}px`;
-            });
-            
-            document.addEventListener('touchend', () => {
-                isDragging = false;
-            });
+function completeOrder(orderData) {
+    // Initialize EmailJS with your User ID
+    emailjs.init('QvIssxIuvONer1lxN');
+    
+    // Generate random order ID
+    const randomOrderId = '#' + Math.floor(10000 + Math.random() * 90000);
+    orderId.textContent = randomOrderId;
+    
+    // Prepare order summary HTML
+    let orderSummary = '<h3>Order Details:</h3><ul>';
+    orderData.items.forEach(item => {
+        orderSummary += `<li>${item.name} × ${item.quantity} - GH₵${item.totalPrice.toFixed(2)}`;
+        if (item.attachment) {
+            orderSummary += ` (with ${item.attachment.name})`;
         }
+        orderSummary += `</li>`;
+    });
+    orderSummary += `</ul>`;
+    orderSummary += `<p><strong>Subtotal:</strong> GH₵${orderData.subtotal.toFixed(2)}</p>`;
+    orderSummary += `<p><strong>Delivery Fee:</strong> GH₵${orderData.deliveryFee.toFixed(2)}</p>`;
+    orderSummary += `<p><strong>Total:</strong> GH₵${orderData.total.toFixed(2)}</p>`;
+    orderSummary += `<p><strong>Payment Method:</strong> ${orderData.paymentMethod === 'card' ? 'Paystack (Card)' : orderData.paymentMethod === 'momo' ? 'Mobile Money' : 'Cash on Delivery'}</p>`;
+    
+    // Prepare email data
+    const emailData = {
+        to_email: orderData.customer.email || 'bselasi51@gmail.com', // Fallback to your email if customer email is missing
+        from_name: 'Delicious Bites',
+        customer_name: orderData.customer.name,
+        customer_phone: orderData.customer.phone,
+        customer_address: orderData.customer.address,
+        delivery_notes: orderData.customer.notes || 'No special instructions',
+        order_id: randomOrderId,
+        order_summary: orderSummary,
+        total_amount: `GH₵${orderData.total.toFixed(2)}`,
+        payment_method: orderData.paymentMethod === 'card' ? 'Paystack (Card)' : orderData.paymentMethod === 'momo' ? 'Mobile Money' : 'Cash on Delivery'
+    };
+
+    // Send emails
+    Promise.all([
+        // Email to customer
+        emailjs.send('default_service', 'template_20ztoyq', {
+            to_email: emailData.to_email,
+            from_name: emailData.from_name,
+            customer_name: emailData.customer_name,
+            order_id: emailData.order_id,
+            order_summary: emailData.order_summary,
+            total_amount: emailData.total_amount,
+            payment_method: emailData.payment_method
+        }),
+        // Email to restaurant (you)
+        emailjs.send('default_service', 'template_jpinq5j', {
+            to_email: 'bselasi51@gmail.com',
+            from_name: emailData.from_name,
+            customer_name: emailData.customer_name,
+            customer_phone: emailData.customer_phone,
+            customer_address: emailData.customer_address,
+            delivery_notes: emailData.delivery_notes,
+            order_id: emailData.order_id,
+            order_summary: emailData.order_summary,
+            total_amount: emailData.total_amount,
+            payment_method: emailData.payment_method
+        })
+    ]).then(() => {
+        console.log('Emails sent successfully');
+    }).catch(error => {
+        console.error('Email sending failed:', error);
+    });
+
+    // Show confirmation modal with animation
+    confirmationModal.classList.remove('hidden');
+    setTimeout(() => {
+        confirmationContent.classList.remove('scale-95', 'opacity-0');
+        confirmationContent.classList.add('scale-100', 'opacity-100');
+    }, 10);
+    
+    // Clear cart
+    cart = [];
+    updateCartCount();
+    
+    // Reset form
+    deliveryForm.reset();
+    
+    // Switch to home tab after delay
+    setTimeout(() => {
+        confirmationContent.classList.remove('scale-100', 'opacity-100');
+        confirmationContent.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            confirmationModal.classList.add('hidden');
+            switchTab('home');
+        }, 300);
+    }, 5000);
+    
+    // In a real app, you would send orderData to your backend here
+    console.log('Order completed:', orderData);
+}
     </script>
 </body>
 </html>
+
